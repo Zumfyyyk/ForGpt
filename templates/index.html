@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Bot Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        form {
+            display: flex;
+            gap: 10px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crypto Bot Dashboard</h1>
+
+    <h2>Logs</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Timestamp</th>
+            <th>Level</th>
+            <th>Message</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ log[0] }}</td>
+            <td>{{ log[1] }}</td>
+            <td>{{ log[2] }}</td>
+            <td>{{ log[3] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Support Messages</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>User ID</th>
+            <th>Message</th>
+            <th>Response</th>
+            <th>Timestamp</th>
+            <th>Action</th>
+        </tr>
+        {% for message in support_messages %}
+        <tr>
+            <td>{{ message[0] }}</td>
+            <td>{{ message[1] }}</td>
+            <td>{{ message[2] }}</td>
+            <td>{{ message[3] }}</td>
+            <td>{{ message[4] }}</td>
+            <td>
+                <form action="{{ url_for('respond') }}" method="post">
+                    <input type="hidden" name="message_id" value="{{ message[0] }}">
+                    <input type="text" name="response" placeholder="Enter response">
+                    <button type="submit">Respond</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
