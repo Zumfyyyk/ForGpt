@@ -9,7 +9,7 @@
 - Поддержку Inline-клавиатур для удобного взаимодействия с пользователями.
 
 ## Demo (В разработке)
-![Crypto Bot Demo]([https://media.giphy.com/media/3o6ZtqjPFnKqYo0jUo/giphy.gif](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWk1Y2c4bWZ0ajgzbzltbHE0ZXV4aHplNXFidjFreDY0OWczcmZlZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytBoIyQ7ArpRirP0oh/giphy.gif))
+![Crypto Bot Demo]([https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWk1Y2c4bWZ0ajgzbzltbHE0ZXV4aHplNXFidjFreDY0OWczcmZlZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytBoIyQ7ArpRirP0oh/giphy.gif])
 
 ## Стек технологий
 - **Python 3.13+**
