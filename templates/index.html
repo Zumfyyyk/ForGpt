@@ -5,93 +5,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Bot Dashboard</title>
     <style>
+        .admin-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color:rgb(117, 117, 117); /* Красный цвет */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        .admin-link:hover {
+            transform: scale(1.1); /* Увеличение при наведении */
+            background-color: #ff2d2d; /* Более яркий красный */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+        }
+    
+        .admin-link:active {
+            transform: scale(0.95); /* Немного уменьшится при клике */
+        }
+        
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --accent-color: #4CAF50;
+        }
+
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            animation: fadeIn 0.8s ease-in-out;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         h1, h2 {
-            color: #333;
+            color: var(--text-color);
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            animation: tableFadeIn 1s ease-in-out;
         }
+
+        @keyframes tableFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border-bottom: 1px solid #333;
             text-align: left;
         }
+
         th {
-            background-color: #f4f4f4;
+            background-color: #333;
         }
+
         form {
             display: flex;
             gap: 10px;
         }
+
         input[type="text"] {
             flex: 1;
-            padding: 5px;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: var(--text-color);
         }
+
         button {
-            padding: 5px 10px;
-            background-color: #4CAF50;
+            padding: 8px 16px;
+            background-color: var(--accent-color);
             color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
         }
+
         button:hover {
             background-color: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px #4CAF50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            border-radius: 10px; /* Немного закругленные углы */
+            margin-bottom: 20px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .admin-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Error message for empty response */
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Crypto Bot Dashboard</h1>
+    <div class="container">
+        <img src="/static/logo.png" alt="Crypto Bot Logo" class="logo">
+        <h1>Добро пожаловать в пункт управления!</h1>
 
-    <h2>Logs</h2>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>Timestamp</th>
-            <th>Level</th>
-            <th>Message</th>
-        </tr>
-        {% for log in logs %}
-        <tr>
-            <td>{{ log[0] }}</td>
-            <td>{{ log[1] }}</td>
-            <td>{{ log[2] }}</td>
-            <td>{{ log[3] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+        <h2>Logs</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Level</th>
+                <th>Message</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log[0] }}</td>
+                <td>{{ log[1] }}</td>
+                <td>{{ log[2] }}</td>
+                <td>{{ log[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
 
-    <h2>Support Messages</h2>
-    <table>
-        <tr>
-            <th>ID</th>
-            <th>User ID</th>
-            <th>Message</th>
-            <th>Response</th>
-            <th>Timestamp</th>
-            <th>Action</th>
-        </tr>
-        {% for message in support_messages %}
-        <tr>
-            <td>{{ message[0] }}</td>
-            <td>{{ message[1] }}</td>
-            <td>{{ message[2] }}</td>
-            <td>{{ message[3] }}</td>
-            <td>{{ message[4] }}</td>
-            <td>
-                <form action="{{ url_for('respond') }}" method="post">
-                    <input type="hidden" name="message_id" value="{{ message[0] }}">
-                    <input type="text" name="response" placeholder="Enter response">
-                    <button type="submit">Respond</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+        <h2>Support Messages</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Message</th>
+                <th>Response</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+            {% for message in support_messages %}
+            <tr>
+                <td>{{ message[0] }}</td>
+                <td>{{ message[1] }}</td>
+                <td>{{ message[2] }}</td>
+                <td>{{ message[3] }}</td>
+                <td>{{ message[4] }}</td>
+                <td>
+                    <form action="{{ url_for('respond') }}" method="post">
+                        <input type="hidden" name="message_id" value="{{ message[0] }}">
+                        <input type="text" name="response" placeholder="Enter response" required>
+                        <button type="submit">Respond</button>
+                        {% if error %}
+                        <div class="error">{{ error }}</div>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <a href="/logout" class="admin-link">Logout/Быстренько сьебаться</a>
+    </div>
 </body>
 </html>

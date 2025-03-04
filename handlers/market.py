@@ -4,7 +4,7 @@ from services.bybit_api import fetch_markets
 from utils.buttons import get_back_button, get_main_menu
 
 async def get_markets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    markets = fetch_markets()
+    markets = await fetch_markets()  # Await the coroutine
     usdt_markets = [m['symbol'] for m in markets if 'USDT' in m['symbol']]
     market_list = ", ".join(usdt_markets[:10]) + "..."
     await update.message.reply_text(f"Доступные пары с USDT: {market_list}", reply_markup=get_back_button())
