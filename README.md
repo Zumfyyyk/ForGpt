@@ -8,8 +8,8 @@
 - Интеграцию с базой данных для хранения сообщений пользователей и истории торгов.
 - Поддержку Inline-клавиатур для удобного взаимодействия с пользователями.
 
-## Демо
-![Crypto Bot Demo](https://media.giphy.com/media/3o6ZtqjPFnKqYo0jUo/giphy.gif)
+## Demo (В разработке)
+![Crypto Bot Demo]([https://media.giphy.com/media/3o6ZtqjPFnKqYo0jUo/giphy.gif](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWk1Y2c4bWZ0ajgzbzltbHE0ZXV4aHplNXFidjFreDY0OWczcmZlZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytBoIyQ7ArpRirP0oh/giphy.gif))
 
 ## Стек технологий
 - **Python 3.13+**
@@ -26,27 +26,30 @@
 ```bash
 git clone https://github.com/your-username/crypto-bot-assistant.git
 cd crypto-bot-assistant
-
+```
 2. Установите зависимости:
-
+```bash
 pip install -r requirements.txt
-
+```
 3. Настройте параметры:
+```bash
 Перейдите в файл config.py и введите необходимые данные для вашего бота, такие как TOKEN, USERNAME, PASSWORD и другие параметры.
-
+```
 4. Запустите проект:
 Для запуска сервера Flask и Telegram-бота:
-
+```bash
 python bot.py
-
+```
 Использование:
 После запуска бота вы можете взаимодействовать с ним через Telegram и получать актуальные данные по криптовалютам.
 
 Основные команды:
+```bash
 /start — приветствие и инструкции.
 /analyze — анализ текущих данных о криптовалюте.
 /support — связаться с технической поддержкой.
 /donate — сделать пожертвование для поддержки проекта.
+```
 Примечания
 Не забудьте включить API-ключ для работы с биржей Bybit.
 Проект поддерживает асинхронные запросы и использует многозадачность для параллельной обработки данных.
@@ -57,4 +60,4 @@ python bot.py
 Этот проект лицензирован под MIT License — см. файл LICENSE для подробностей.
 
 Разработчики
-Никита Харченко — Основной разработчик
+Никита Харченко (Zumfyyyk) — Основной разработчик
