@@ -1,0 +1,1218 @@
+config.py:# Для бота
+TOKEN="7807041975:AAFK_uUXUiUfyyDPOPu5g-oUdJfor0l9rRU"  # Ключ бота
+
+# Для Bybit
+BYBIT_API_KEY='64aN92dhfTcYQyk117'  # Ключ Bybit
+BYBIT_SECRET='ZxYWhdskWXCZWVRSUnXHAg7CiBh87I0VqGSQ'  # Секретный ключ Bybit
+
+# Для базы данных и сайта
+SECRET_KEY='11011011011011011011011011011database2025btc'  # Секретный ключ для шифрования данных(база данных)
+
+USERNAME = 'Admin'  # Имя пользователя для логина
+PASSWORD = 'Pass123'  # Пароль для логина
+
+# Другие конфигурации
+DATABASE_URI = 'sqlite:///crypto_bot.db'  # Путь к базе данных, если используешь SQLite
+app.py:import sqlite3
+import logging
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+DB_NAME = 'crypto_bot.db'
+
+def create_connection():
+    """Создание соединения с базой данных SQLite."""
+    try:
+        conn = sqlite3.connect(DB_NAME, check_same_thread=False)
+        conn.row_factory = sqlite3.Row  # Доступ к столбцам по названию
+        return conn
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка подключения к базе данных: {e}")
+        return None
+
+def create_tables():
+    """Создание необходимых таблиц, если их нет."""
+    try:
+        with create_connection() as conn:
+            if conn is None:
+                return
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    level TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS settings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    key TEXT UNIQUE,
+                    value TEXT
+                )
+            ''')
+
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS support_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
+                    message TEXT,
+                    response TEXT,
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+            conn.commit()
+            logger.info("Таблицы успешно созданы или уже существуют.")
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка при создании таблиц: {e}")
+
+def log_message(level, message):
+    """Запись лог-сообщения в базу данных."""
+    try:
+        with create_connection() as conn:
+            if conn is None:
+                return
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO logs (level, message) VALUES (?, ?)', (level, message))
+            conn.commit()
+            logger.info(f"Лог записан: [{level}] {message}")
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка при записи лога: {e}")
+
+def get_logs(limit=50):
+    """Получение последних логов из базы данных."""
+    try:
+        with create_connection() as conn:
+            if conn is None:
+                return []
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM logs ORDER BY timestamp DESC LIMIT ?', (limit,))
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка при получении логов: {e}")
+        return []
+
+def save_setting(key, value):
+    """Сохранение настройки в базе данных."""
+    try:
+        with create_connection() as conn:
+            if conn is None:
+                return
+            cursor = conn.cursor()
+            cursor.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', (key, value))
+            conn.commit()
+            logger.info(f"Настройка сохранена: {key} = {value}")
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка при сохранении настройки: {e}")
+
+def get_setting(key):
+    """Получение значения настройки по ключу."""
+    try:
+        with create_connection() as conn:
+            if conn is None:
+                return None
+            cursor = conn.cursor()
+            cursor.execute('SELECT value FROM settings WHERE key = ?', (key,))
+            row = cursor.fetchone()
+            if row is None:
+                logger.warning(f"Настройка с ключом '{key}' не найдена.")
+            return row['value'] if row else None
+    except sqlite3.Error as e:
+        logger.error(f"Ошибка при получении настройки: {e}")
+        return None
+
+database.py:import sqlite3
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def create_connection():
+    try:
+        conn = sqlite3.connect('crypto_bot.db')
+        return conn
+    except sqlite3.Error as e:
+        logger.error(f"Error connecting to database: {e}")
+        return None
+
+# Функция для создания таблиц (обновленная)
+def create_tables():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS support_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        message TEXT,
+        response TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        status TEXT DEFAULT 'active'  -- Добавляем поле для статуса чата
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+def log_message(level, message):
+    conn = create_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO logs (level, message) VALUES (?, ?)', (level, message))
+    conn.commit()
+    conn.close()
+
+def log_error(message):
+    # Здесь можно настроить сохранение ошибки в лог файл или базу данных
+    logging.error(f"Ошибка: {message}")
+
+def get_logs():
+    conn = create_connection()
+    if conn is None:
+        return []
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM logs ORDER BY timestamp DESC')
+    logs = cursor.fetchall()
+    conn.close()
+    return logs
+
+def save_setting(key, value):
+    conn = create_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    cursor.execute('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)', (key, value))
+    conn.commit()
+    conn.close()
+
+def get_setting(key):
+    conn = create_connection()
+    if conn is None:
+        return None
+    cursor = conn.cursor()
+    cursor.execute('SELECT value FROM settings WHERE key = ?', (key,))
+    value = cursor.fetchone()
+    conn.close()
+    return value
+
+def save_support_message(user_id, message):
+    conn = create_connection()
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO support_messages (user_id, message) VALUES (?, ?)', (user_id, message))
+    conn.commit()
+    conn.close()
+
+def get_support_message_by_id(message_id):
+    conn = create_connection()
+    if conn is None:
+        logger.error("Failed to connect to the database")
+        return None
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM support_messages WHERE id = ?', (message_id,))
+        message = cursor.fetchone()
+        if message:
+            logger.info(f"Fetched support message {message_id}: {message}")
+        else:
+            logger.warning(f"Message with id {message_id} not found")
+        return message
+    except sqlite3.Error as e:
+        logger.error(f"Error fetching support message by id: {e}")
+    finally:
+        conn.close()
+
+def get_chat_history(user_id):
+    conn = create_connection()
+    if conn is None:
+        return []
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM support_messages WHERE user_id = ? ORDER BY timestamp DESC', (user_id,))
+    messages = cursor.fetchall()
+    conn.close()
+    return messages
+
+# Функция для получения сообщений (с фильтрацией по статусу)
+def get_support_messages():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    SELECT * FROM support_messages WHERE status != 'closed'  -- Исключаем закрытые чаты
+    ''')
+    messages = cursor.fetchall()
+    conn.close()
+    return messages
+
+# Функция для закрытия чата
+def close_chat(message_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    UPDATE support_messages
+    SET status = 'closed'
+    WHERE id = ?
+    ''', (message_id,))
+    conn.commit()
+    conn.close()
+
+def respond_to_support_message(message_id, response):
+    conn = create_connection()
+    if conn is None:
+        return
+    cursor = conn.cursor()
+    cursor.execute('UPDATE support_messages SET response = ? WHERE id = ?', (response, message_id))
+    conn.commit()
+    conn.close()
+
+def clear_all_logs():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM logs")
+    conn.commit()
+    conn.close()
+analysis.py:import ccxt
+from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from services.chart import generate_chart
+from services.bybit_api import fetch_ohlcv_async
+from utils.buttons import get_back_button, get_main_menu
+from handlers.start import show_main_menu
+from logger import setup_logger
+
+exchange = ccxt.bybit()  # Инициализация биржи
+logger = setup_logger()  # Настройка логгера
+
+async def request_chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.debug("Получена команда для запроса графика")
+    await update.message.reply_text("Введите монету в формате: BTC/USDT", reply_markup=get_back_button())
+
+async def select_timeframe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    symbol = update.message.text.strip().upper()
+    markets = exchange.load_markets()
+    if symbol not in markets:
+        logger.debug(f"Неверный символ: {symbol}")
+        await update.message.reply_text("Неверный символ. Пожалуйста, введите символ в формате: BTC/USDT.")
+        return
+
+    context.user_data['symbol'] = symbol
+    logger.debug(f"Выбран символ: {symbol}")
+    await update.message.reply_text("Введите временной интервал (например, 1m, 5m, 15m, 30m, 1h, 2h, 4h, 5h):", reply_markup=get_back_button())
+
+async def send_chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    timeframe = update.message.text.strip()
+    symbol = context.user_data.get('symbol')
+    logger.debug(f"Выбран временной интервал: {timeframe} для символа: {symbol}")
+
+    try:
+        await handle_chart_request(symbol, timeframe, update.effective_chat.id, context)
+    except ccxt.BaseError as e:
+        if isinstance(e, ccxt.BadSymbol):
+            logger.error(f"Неверный символ: {symbol}")
+            await update.message.reply_text("Неверный символ.")
+        else:
+            logger.error(f"Ошибка при получении данных: {e}")
+            await update.message.reply_text("Произошла ошибка при получении данных.")
+    return await show_main_menu(update)
+
+async def handle_chart_request(symbol, interval, user_id, context) -> None:
+    logger.debug(f"Запрос данных для символа: {symbol} с интервалом: {interval}")
+    data = await fetch_ohlcv_async(symbol, interval)
+    chart = await generate_chart(symbol, interval)
+    if chart:
+        await context.bot.send_photo(chat_id=user_id, photo=chart)
+        logger.debug(f"График отправлен пользователю: {user_id}")
+    else:
+        await context.bot.send_message(chat_id=user_id, text="Не удалось сгенерировать график.")
+        logger.error(f"Не удалось сгенерировать график для символа: {symbol} с интервалом: {interval}")
+
+def get_analysis_handlers() -> list:
+    logger.debug("Настройка обработчиков анализа")
+    return [
+        MessageHandler(filters.TEXT & filters.Regex("📊 График"), request_chart),
+        MessageHandler(filters.TEXT & ~filters.COMMAND & ~filters.Regex("Назад") & filters.Regex("^[A-Z]+/[A-Z]+$"), select_timeframe),
+        MessageHandler(filters.TEXT & ~filters.COMMAND & ~filters.Regex("Назад") & filters.Regex("^(1m|5m|15m|30m|1h|2h|4h|5h)$"), send_chart),
+    ]
+
+back.py:from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from utils.buttons import get_main_menu
+
+async def back(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Выбери действие:", reply_markup=get_main_menu())
+
+def get_back_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("Назад"), back)
+
+donate.py:from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from utils.buttons import get_back_button, get_main_menu
+
+async def donate(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Поддержать проект:\n\nUAH Карточка: 4441 1144 0079 5314\nEUR Карта: 4441 1144 9042 1276\nUSDT (BEP20): (скоро)\nTrustee Plus: (скоро)",
+        reply_markup=get_back_button()
+    )
+
+def get_donate_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("Поддержать проект"), donate)
+
+info.py:from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from utils.buttons import get_back_button, get_main_menu
+
+async def info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Информация о проекте:\n\nЭтот бот помогает анализировать криптовалютные графики и предоставлять информацию о рынке.",
+        reply_markup=get_back_button()
+    )
+
+def get_info_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("Информация о проекте"), info)
+
+market.py:from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from services.bybit_api import fetch_markets
+from utils.buttons import get_back_button, get_main_menu
+
+async def get_markets(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    markets = await fetch_markets()  # Await the coroutine
+    usdt_markets = [m['symbol'] for m in markets if 'USDT' in m['symbol']]
+    market_list = ", ".join(usdt_markets[:10]) + "..."
+    await update.message.reply_text(f"Доступные пары с USDT: {market_list}", reply_markup=get_back_button())
+
+async def show_main_menu(update: Update):
+    keyboard = get_main_menu()
+    await update.message.reply_text("Выбери действие:", reply_markup=keyboard)
+
+def get_market_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("📈 Маркет"), get_markets)
+
+sentiment.py:from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from utils.buttons import get_back_button, get_main_menu
+from services.bybit_api import fetch_market_sentiment
+
+async def sentiment(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    sentiment = await fetch_market_sentiment()
+    if sentiment:
+        await update.message.reply_text(
+            f"Настроение рынка:\n\nУровень страха и жадности: {sentiment}",
+            reply_markup=get_back_button()
+        )
+    else:
+        await update.message.reply_text(
+            "Не удалось получить информацию о настроении рынка.",
+            reply_markup=get_back_button()
+        )
+
+def get_sentiment_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("Настроение"), sentiment)
+
+start.py:from telegram import Update, ReplyKeyboardMarkup
+from telegram.ext import CommandHandler, ContextTypes
+from utils.buttons import get_main_menu
+
+WELCOME_MESSAGE = """
+👋 Привет\\! Я — *CryptoBot*\\.
+
+✅ Что я умею\\:
+\\- Показывать графики криптовалют за последние 30 минут \\(в формате свечей\\)\\.
+\\- Отображать доступные торговые пары с USDT\\.
+
+📊 *Как использовать*\\:
+1\\. Нажми "📊 График" и введи монету \\(например, BTC/USDT\\)\\.
+2\\. Получи график с последними свечами\\.
+
+🔔 Больше функций скоро\\!
+"""
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_markdown_v2(WELCOME_MESSAGE)
+    await show_main_menu(update)
+
+async def show_main_menu(update: Update):
+    keyboard = get_main_menu()
+    await update.message.reply_text("Выбери действие:", reply_markup=keyboard)
+
+def get_start_handler() -> CommandHandler:
+    return CommandHandler("start", start)
+
+support.py:import logging
+from telegram import Update
+from telegram.ext import ContextTypes, MessageHandler, filters
+from database.database import save_support_message  # Импортируем функцию для сохранения сообщений
+from utils.buttons import get_back_button
+
+# Настройка логирования
+logger = logging.getLogger(__name__)
+
+async def support(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_id = update.message.from_user.id
+    message = update.message.text
+    logger.info(f"Received support message from user {user_id}: {message}")
+    save_support_message(user_id, message)  # Сохраняем сообщение в БД
+    await update.message.reply_text("В разработке.", reply_markup=get_back_button())  # Ответ пользователю
+
+async def respond_to_user(context: ContextTypes.DEFAULT_TYPE, user_id: int, response: str) -> None:
+    await context.bot.send_message(chat_id=user_id, text=response)
+
+def get_support_handler() -> MessageHandler:
+    return MessageHandler(filters.TEXT & filters.Regex("Поддержка"), support)  # Обработчик команд "Поддержка"
+
+bybit_api.py:import ccxt.async_support as ccxt  # Асинхронная версия ccxt
+import logging
+import asyncio
+from config.config import BYBIT_API_KEY, BYBIT_SECRET
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Проверяем наличие API-ключей
+if not BYBIT_API_KEY or not BYBIT_SECRET:
+    logger.error("API-ключи Bybit не указаны в config.py")
+    raise ValueError("Необходимо указать BYBIT_API_KEY и BYBIT_SECRET в config.py")
+
+# Инициализация Bybit API
+exchange = ccxt.bybit({
+    'apiKey': BYBIT_API_KEY,
+    'secret': BYBIT_SECRET,
+    'enableRateLimit': True,  # Включение ограничения скорости запросов
+})
+
+async def fetch_markets():
+    """Получение списка рынков с повтором при ошибке"""
+    try:
+        markets = await exchange.fetch_markets()
+        logger.info("Успешно получены рынки")
+        return markets
+    except Exception as e:
+        logger.error(f"Ошибка при получении рынков: {e}")
+        return []
+
+async def fetch_ohlcv_async(symbol: str, timeframe: str = '1m', limit: int = 100):
+    """
+    Асинхронная функция для получения OHLCV данных с повтором при ошибке.
+    """
+    try:
+        if not await exchange.load_markets():
+            await exchange.load_markets()
+
+        ohlcv = await exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+        logger.info(f"Получены данные OHLCV для {symbol}")
+        return ohlcv
+    except Exception as e:
+        logger.error(f"Ошибка при получении OHLCV для {symbol}: {e}")
+        return None
+
+async def fetch_market_sentiment():
+    """
+    Заглушка для получения настроения рынка (Bybit напрямую не предоставляет эти данные).
+    """
+    try:
+        # В реальном случае можно подключить сторонний API для индекса страха и жадности
+        sentiment = "Данные о настроении рынка временно недоступны"
+        logger.info("Получены данные о настроении рынка")
+        return sentiment
+    except Exception as e:
+        logger.error(f"Ошибка при получении настроения рынка: {e}")
+        return None
+
+async def close_connection():
+    """
+    Закрытие соединения с биржей, проверка на открытое соединение.
+    """
+    try:
+        if exchange:
+            await exchange.close()
+            logger.info("Соединение с Bybit закрыто")
+    except Exception as e:
+        logger.error(f"Ошибка при закрытии соединения: {e}")
+
+# Пример повторной попытки при ошибке
+async def fetch_markets_with_retry(retries=3, delay=5):
+    """
+    Получение списка рынков с повтором при ошибке.
+    :param retries: Количество попыток.
+    :param delay: Задержка между попытками в секундах.
+    """
+    for attempt in range(retries):
+        markets = await fetch_markets()
+        if markets:
+            return markets
+        logger.warning(f"Попытка {attempt + 1} не удалась, повтор через {delay} секунд...")
+        await asyncio.sleep(delay)
+    return []
+
+
+chart.py:import datetime
+import matplotlib.pyplot as plt
+from io import BytesIO
+from services.bybit_api import fetch_ohlcv_async  # Correct import
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def generate_chart(symbol: str, timeframe: str):
+    logger.info(f"Fetching OHLCV data for {symbol} with timeframe {timeframe}")
+    try:
+        ohlcv = await fetch_ohlcv_async(symbol, timeframe, limit=30)  # Асинхронный вызов
+        if not ohlcv:
+            logger.error(f"No OHLCV data found for {symbol} with timeframe {timeframe}")
+            return None
+
+        times = [datetime.datetime.fromtimestamp(candle[0] / 1000) for candle in ohlcv]
+        opens = [candle[1] for candle in ohlcv]
+        closes = [candle[4] for candle in ohlcv]
+        highs = [candle[2] for candle in ohlcv]
+        lows = [candle[3] for candle in ohlcv]
+
+        colors = ['green' if close >= open else 'red' for open, close in zip(opens, closes)]
+
+        plt.figure(figsize=(10, 5))
+        for i in range(len(ohlcv)):
+            plt.plot([times[i], times[i]], [lows[i], highs[i]], color='black', linewidth=1)
+            plt.plot([times[i], times[i]], [opens[i], closes[i]], color=colors[i], linewidth=6)
+
+        plt.title(f"График {symbol} ({timeframe})", fontsize=16)
+        plt.xlabel('Время', fontsize=12)
+        plt.ylabel('Цена (USDT)', fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.6)
+
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        plt.close()
+        logger.info(f"Chart generated for {symbol} with timeframe {timeframe}")
+        return buffer
+    except Exception as e:
+        logger.error(f"Error generating chart for {symbol} with timeframe {timeframe}: {e}")
+        return None
+
+def generate_chart(data):
+    # Реализация функции для создания графика на основе данных
+    pass
+index.py:<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Bot Dashboard</title>
+    <style>
+        .admin-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color:rgb(117, 117, 117); /* Красный цвет */
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+    
+        .admin-link:hover {
+            transform: scale(1.1); /* Увеличение при наведении */
+            background-color: #ff2d2d; /* Более яркий красный */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+        }
+    
+        .admin-link:active {
+            transform: scale(0.95); /* Немного уменьшится при клике */
+        }
+        
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg: #1e1e1e;
+            --accent-color: #4CAF50;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1, h2 {
+            color: var(--text-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            animation: tableFadeIn 1s ease-in-out;
+        }
+
+        @keyframes tableFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            background-color: #333;
+            color: var(--text-color);
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px #4CAF50;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            width: 150px;
+            height: auto;
+            border-radius: 10px; /* Немного закругленные углы */
+            margin-bottom: 20px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .admin-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Error message for empty response */
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/static/logo.png" alt="Crypto Bot Logo" class="logo">
+        <h1>Добро пожаловать в пункт управления!</h1>
+
+        <h2>Logs</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Timestamp</th>
+                <th>Level</th>
+                <th>Message</th>
+            </tr>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log[0] }}</td>
+                <td>{{ log[1] }}</td>
+                <td>{{ log[2] }}</td>
+                <td>{{ log[3] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h2>Support Messages</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Message</th>
+                <th>Response</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+            {% for message in support_messages %}
+            <tr>
+                <td>{{ message[0] }}</td>
+                <td>{{ message[1] }}</td>
+                <td>{{ message[2] }}</td>
+                <td>{{ message[3] }}</td>
+                <td>{{ message[4] }}</td>
+                <td>
+                    <form action="{{ url_for('respond') }}" method="post">
+                        <input type="hidden" name="message_id" value="{{ message[0] }}">
+                        <input type="text" name="response" placeholder="Enter response" required>
+                        <button type="submit">Respond</button>
+                        {% if error %}
+                        <div class="error">{{ error }}</div>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <a href="/logout" class="admin-link">Logout/Быстренько сьебаться</a>
+    </div>
+</body>
+</html>
+
+login.py:<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            background: linear-gradient(45deg, #ff8c00, #ff00ff, #00bfff, #8a2be2);
+            background-size: 400% 400%;
+            animation: gradientAnimation 5s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .login-container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        .login-container {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideIn 1s ease-in-out;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        /* Полноэкранная анимация */
+        .welcome-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 3em;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+            animation: fadeIn 3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .fade-out {
+            animation: fadeOut 2s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #333;
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s, background-color 0.3s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+            background-color: #45a049;
+        }
+        
+        /* Логотип с закругленными углами */
+        .logo {
+            width: 100px; /* Размер логотипа */
+            height: auto;
+            border-radius: 50%; /* Закругление углов (круглый логотип) */
+            margin-bottom: 20px; /* Отступ снизу */
+        }
+
+        /* Сообщение об ошибке */
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <img src="/static/logo.png" alt="Логотип" class="logo"> <!-- Логотип с закругленными углами -->
+        <h2>Вход в норку</h2>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>  <!-- Отображение ошибки -->
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="text" name="username" placeholder="Логин" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">Войти</button>
+        </form>
+    </div>
+</body>
+</html>
+
+buttons.py:from telegram import ReplyKeyboardMarkup
+
+main_menu = [
+            ["📊 График", "📈 Маркет"],
+            ["Поддержать проект", "Информация о проекте"],
+            ["Поддержка(скоро)", "Настроение"]
+]
+back_button = [["Назад"]]
+
+def get_main_menu():
+    return ReplyKeyboardMarkup(main_menu, resize_keyboard=True)
+
+def get_back_button():
+    return ReplyKeyboardMarkup(back_button, resize_keyboard=True)
+
+bot.py:import logging
+import sys
+import asyncio
+import threading
+import httpx
+from flask import Flask, render_template, request, redirect, url_for, session
+from telegram.ext import ApplicationBuilder
+from handlers.start import get_start_handler
+from handlers.analysis import get_analysis_handlers
+from handlers.support import get_support_handler
+from handlers.market import get_market_handler
+from handlers.donate import get_donate_handler
+from handlers.info import get_info_handler
+from handlers.sentiment import get_sentiment_handler
+from handlers.back import get_back_handler
+from database.database import create_tables, respond_to_support_message, get_support_messages
+from config.config import TOKEN, USERNAME, PASSWORD, SECRET_KEY
+import nest_asyncio
+
+# Настройка логирования
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
+logging.debug(f"Token: {TOKEN}")
+
+# Создание таблиц при запуске
+create_tables()
+
+# Настройка Flask-приложения
+app = Flask(__name__)
+app.secret_key = SECRET_KEY
+app.telegram_context = None
+
+# Главная страница
+@app.route('/')
+def home():
+    return redirect(url_for('login'))  # Перенаправление на страницу логина
+
+# Страница логина
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None  # Инициализация переменной для ошибки
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        # Проверяем логин и пароль из config.py
+        if username == USERNAME and password == PASSWORD:
+            session['logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            error = "Неверные учетные данные!"  # Устанавливаем ошибку, если логин или пароль неверны
+
+    return render_template('login.html', error=error)  # Передаем ошибку в шаблон
+
+# Страница базы данных (доступ только после авторизации)
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    # Получаем все активные сообщения из базы данных
+    support_messages = get_support_messages()
+
+    return render_template('index.html', support_messages=support_messages)
+
+# Выход из системы
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('login'))
+
+# Обработка ответов на сообщения поддержки
+@app.route('/respond', methods=['POST'])
+def respond():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    message_id = request.form.get('message_id')
+    response = request.form.get('response')
+
+    if message_id and response:
+        respond_to_support_message(message_id, response)
+    return redirect(url_for('dashboard'))
+
+
+# Функция запуска Telegram-бота
+async def run_bot():
+    application = ApplicationBuilder().token(TOKEN).http_version("1.1").build()
+    app.telegram_context = application
+
+    logging.debug("Приложение Telegram создано успешно.")
+
+    # Добавление обработчиков команд
+    application.add_handler(get_start_handler())
+
+    for handler in get_analysis_handlers():
+        application.add_handler(handler)
+
+    application.add_handler(get_support_handler())
+    application.add_handler(get_market_handler())
+    application.add_handler(get_donate_handler())
+    application.add_handler(get_info_handler())
+    application.add_handler(get_sentiment_handler())
+    application.add_handler(get_back_handler())
+
+    print("Бот запущен. Нажми CTRL+C для остановки.")
+    await application.run_polling()
+
+# Функция запуска Flask
+def run_flask():
+    app.run(debug=True, use_reloader=False, threaded=True)
+
+# Запуск Flask в отдельном потоке
+def start_flask_in_thread():
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.daemon = True  # Обеспечивает завершение потока при выходе программы
+    flask_thread.start()
+
+# Основная асинхронная функция
+async def main():
+    start_flask_in_thread()  # Запуск Flask в фоновом потоке
+    await run_bot()  # Запуск Telegram-бота в асинхронном режиме
+
+if __name__ == "__main__":
+    nest_asyncio.apply()  # Разрешение асинхронных операций в основном потоке
+    asyncio.run(main())  # Запуск основной функции
+logger.py:import logging
+
+def setup_logger():
+    logger = logging.getLogger('bot_logger')
+    logger.setLevel(logging.DEBUG)
+    
+    # Создаем обработчик для записи логов в файл
+    handler = logging.FileHandler('bot.log', mode='w', encoding='utf-8')
+    handler.setLevel(logging.DEBUG)
+    
+    # Создаем форматтер и добавляем его в обработчик
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    
+    # Добавляем обработчик в логгер
+    logger.addHandler(handler)
+    
+    return logger
+pyproject.toml:
+[tool.poetry]
+name = "crypto_bot"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <your.email@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flask = "^2.2.2"
+requests = "^2.28.2"
+ccxt = "^1.76.25"
+telegram = "^1.10.0"
+nest-asyncio = "^1.5.6"
+matplotlib = "^3.7.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+README.md:
+# Crypto-Bot-Assistant
+
+## Описание
+**Crypto-Bot-Assistant** — это Telegram-бот для анализа криптовалютных данных, работающий на бирже **Bybit** и поддерживающий функции анализа графиков, статистики рынка и связи с пользователями. Он предоставляет удобную панель управления, а также множество полезных инструментов для крипто-торговли.
+
+Проект также включает в себя:
+- Реализацию AI/ML анализа для прогнозирования движений цен.
+- Интеграцию с базой данных для хранения сообщений пользователей и истории торгов.
+- Поддержку Inline-клавиатур для удобного взаимодействия с пользователями.
+
+## Demo (В разработке)
+![Crypto Bot Demo](https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWk1Y2c4bWZ0ajgzbzltbHE0ZXV4aHplNXFidjFreDY0OWczcmZlZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytBoIyQ7ArpRirP0oh/giphy.gif)
+
+## Стек технологий
+- **Python 3.13+**
+- **Flask** — для реализации веб-приложения и панели управления.
+- **Telegram Bot API** — для взаимодействия с пользователями.
+- **SQLite** или **MySQL** — для хранения данных.
+- **HTTPX** — для асинхронных запросов и работы с API биржи Bybit.
+- **NestAsyncio** — для корректного выполнения асинхронных задач.
+- **JavaScript (для анимации)** — для динамичных анимаций в веб-интерфейсе.
+
+## Установка
+
+### 1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/your-username/crypto-bot-assistant.git
+cd crypto-bot-assistant
+```
+2. Установите зависимости:
+```bash
+pip install -r requirements.txt
+```
+3. Настройте параметры:
+```bash
+Перейдите в файл config.py и введите необходимые данные для вашего бота, такие как TOKEN, USERNAME, PASSWORD и другие параметры.
+```
+4. Запустите проект:
+Для запуска сервера Flask и Telegram-бота:
+```bash
+python bot.py
+```
+Использование:
+После запуска бота вы можете взаимодействовать с ним через Telegram и получать актуальные данные по криптовалютам.
+
+Основные команды:
+```bash
+/start — приветствие и инструкции.
+/analyze — анализ текущих данных о криптовалюте.
+/support — связаться с технической поддержкой.
+/donate — сделать пожертвование для поддержки проекта.
+```
+# Примечания
+Не забудьте включить API-ключ для работы с биржей Bybit.
+Проект поддерживает асинхронные запросы и использует многозадачность для параллельной обработки данных.
+Контрибьюция
+Если вы хотите внести свой вклад в проект, пожалуйста, создайте Pull Request с описанием изменений.
+
+# Лицензия:
+
+NONE
+
+# Разработчики:
+
+Никита Харченко (Zumfyyyk) — Основной разработчик
