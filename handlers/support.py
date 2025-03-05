@@ -1,7 +1,7 @@
 import logging
 from telegram import Update
 from telegram.ext import ContextTypes, MessageHandler, filters
-from database.database import save_support_message  # Импортируем функцию для сохранения сообщений
+from database.database import save_support_message, update_status  # Импортируем функцию для обновления статуса
 from utils.buttons import get_back_button
 
 # Настройка логирования
@@ -11,6 +11,10 @@ async def support(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_id = update.message.from_user.id
     message = update.message.text
     logger.info(f"Received support message from user {user_id}: {message}")
+    
+    # Обновляем статус пользователя на "active"
+    update_status(user_id, "active")
+    
     save_support_message(user_id, message)  # Сохраняем сообщение в БД
     await update.message.reply_text("В разработке.", reply_markup=get_back_button())  # Ответ пользователю
 

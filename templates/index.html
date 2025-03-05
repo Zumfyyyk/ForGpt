@@ -5,35 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Bot Dashboard</title>
     <style>
-        .admin-link {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color:rgb(117, 117, 117); /* Красный цвет */
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-    
-        .admin-link:hover {
-            transform: scale(1.1); /* Увеличение при наведении */
-            background-color: #ff2d2d; /* Более яркий красный */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
-        }
-    
-        .admin-link:active {
-            transform: scale(0.95); /* Немного уменьшится при клике */
-        }
-        
         :root {
             --bg-color: #121212;
             --text-color: #e0e0e0;
             --card-bg: #1e1e1e;
             --accent-color: #4CAF50;
+            --error-color: #ff2d2d;
         }
 
         body {
@@ -52,6 +29,24 @@
 
         h1, h2 {
             color: var(--text-color);
+        }
+
+        /* Переливающийся текст */
+        @keyframes rainbow {
+            0% { color: red; }
+            14% { color: orange; }
+            28% { color: yellow; }
+            42% { color: green; }
+            57% { color: blue; }
+            71% { color: indigo; }
+            85% { color: violet; }
+            100% { color: red; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            animation: rainbow 3s linear infinite;
         }
 
         table {
@@ -119,11 +114,57 @@
             margin: 0 auto;
         }
 
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
         .logo {
             width: 150px;
             height: auto;
-            border-radius: 10px; /* Немного закругленные углы */
-            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+
+        .logo-text {
+            font-size: 2.5rem;
+            color: var(--text-color);
+            font-weight: bold;
+            animation: rainbow 3s linear infinite;
+        }
+
+        .menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 18px;
+            color: white;
+            background-color: rgba(124, 124, 124, 0.7);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .menu:hover {
+            background-color: #333;
+            box-shadow: 0 4px 8px rgba(56, 56, 56, 0.5);
+            animation: rainbow 5s linear infinite;
+        }
+
+        .menu-items {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(109, 109, 109, 0.3);
+            z-index: 20;
+            width: 200px;
+            animation: slideIn 0.5s ease-in-out;
         }
 
         @keyframes slideIn {
@@ -131,15 +172,49 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .admin-link {
+        .menu:hover .menu-items {
             display: block;
-            margin-top: 20px;
-            text-align: center;
         }
 
-        /* Error message for empty response */
+        .menu-items a {
+            padding: 12px;
+            display: block;
+            color: white;
+            text-decoration: none;
+            border-bottom: 1px solid #333;
+        }
+
+        .menu-items a:hover {
+            background-color: #333;
+        }
+
+        .admin-link {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: rgb(117, 117, 117);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .admin-link:hover {
+            transform: scale(1.1);
+            background-color:rgb(0, 0, 0);
+            animation: rainbow 5s linear infinite;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-link:active {
+            transform: scale(0.95);
+        }
+
         .error {
-            color: red;
+            color: var(--error-color);
             font-size: 14px;
             margin-top: 10px;
         }
@@ -147,8 +222,10 @@
 </head>
 <body>
     <div class="container">
-        <img src="/static/logo.png" alt="Crypto Bot Logo" class="logo">
-        <h1>Добро пожаловать в пункт управления!</h1>
+        <div class="logo-container">
+            <img src="/static/logo.png" alt="Crypto Bot Logo" class="logo">
+            <div class="logo-text">Привет Zumfyyyk!</div>
+        </div>
 
         <h2>Logs</h2>
         <table>
@@ -168,38 +245,23 @@
             {% endfor %}
         </table>
 
-        <h2>Support Messages</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>User ID</th>
-                <th>Message</th>
-                <th>Response</th>
-                <th>Timestamp</th>
-                <th>Action</th>
-            </tr>
-            {% for message in support_messages %}
-            <tr>
-                <td>{{ message[0] }}</td>
-                <td>{{ message[1] }}</td>
-                <td>{{ message[2] }}</td>
-                <td>{{ message[3] }}</td>
-                <td>{{ message[4] }}</td>
-                <td>
-                    <form action="{{ url_for('respond') }}" method="post">
-                        <input type="hidden" name="message_id" value="{{ message[0] }}">
-                        <input type="text" name="response" placeholder="Enter response" required>
-                        <button type="submit">Respond</button>
-                        {% if error %}
-                        <div class="error">{{ error }}</div>
-                        {% endif %}
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
+        <h2>Сообщения в поддержку</h2>
+        <a href="/support" class="admin-link">Перейти в поддержку</a>
 
-        <a href="/logout" class="admin-link">Logout/Быстренько сьебаться</a>
+        <!-- Меню в верхнем правом углу -->
+        <div class="menu">
+            Меню
+            <div class="menu-items">
+                <a href="/logout" class="admin-link">Выход</a>
+                <a href="/settings" class="admin-link">Настройки</a>
+                <a href="/change-account" class="admin-link">Сменить аккаунт</a>
+            </div>
+        </div>
+
+        <!-- Включение ошибки, если есть -->
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
     </div>
 </body>
 </html>

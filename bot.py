@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import threading
-import httpx
 from flask import Flask, render_template, request, redirect, url_for, session
 from telegram.ext import ApplicationBuilder
 from handlers.start import get_start_handler
@@ -81,10 +80,19 @@ def respond():
         respond_to_support_message(message_id, response)
     return redirect(url_for('dashboard'))
 
+@app.route('/clear_chats', methods=['POST'])
+def clear_chats():
+    clear_all_support_messages()  # Очистить все чаты
+    return redirect(url_for('index'))  # Перенаправить обратно на главную страницу
+
+@app.route('/support')
+def support():
+    support_messages = get_support_messages()  # Получить все сообщения
+    return render_template('support.html', support_messages=support_messages)
 
 # Функция запуска Telegram-бота
 async def run_bot():
-    application = ApplicationBuilder().token(TOKEN).http_version("1.1").build()
+    application = ApplicationBuilder().token(TOKEN).build()  # Убираем .timeout(30)
     app.telegram_context = application
 
     logging.debug("Приложение Telegram создано успешно.")
@@ -117,9 +125,11 @@ def start_flask_in_thread():
 
 # Основная асинхронная функция
 async def main():
-    start_flask_in_thread()  # Запуск Flask в фоновом потоке
-    await run_bot()  # Запуск Telegram-бота в асинхронном режиме
+    # Запуск Flask в отдельном потоке
+    start_flask_in_thread()  
+    # Запуск Telegram-бота в асинхронном режиме
+    await run_bot()
 
 if __name__ == "__main__":
-    nest_asyncio.apply()  # Разрешение асинхронных операций в основном потоке
-    asyncio.run(main())  # Запуск основной функции
+    nest_asyncio.apply()
+    asyncio.run(main())  # Запускаем основной асинхронный процесс
