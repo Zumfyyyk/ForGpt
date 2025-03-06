@@ -1,6 +1,6 @@
 import sqlite3
 import logging
-import telegram
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -23,6 +23,7 @@ def create_tables():
                 return
             cursor = conn.cursor()
 
+            # Создание таблицы logs, если её нет
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS logs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,6 +33,13 @@ def create_tables():
                 )
             ''')
 
+            # Проверка и добавление колонки level, если она отсутствует
+            cursor.execute('''PRAGMA table_info(logs)''')
+            columns = cursor.fetchall()
+            if not any(col[1] == 'level' for col in columns):  # Проверяем, есть ли колонка 'level'
+                cursor.execute('ALTER TABLE logs ADD COLUMN level TEXT NOT NULL DEFAULT "INFO"')
+
+            # Создание остальных таблиц
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS settings (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +62,7 @@ def create_tables():
             logger.info("Таблицы успешно созданы или уже существуют.")
     except sqlite3.Error as e:
         logger.error(f"Ошибка при создании таблиц: {e}")
-
+    
 def update_status(user_id, status):
     """Обновление статуса пользователя в таблице поддержки."""
     try:

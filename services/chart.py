@@ -43,6 +43,6 @@ async def generate_chart(symbol: str, timeframe: str):
         logger.error(f"Error generating chart for {symbol} with timeframe {timeframe}: {e}")
         return None
 
-def generate_chart(data):
+#def generate_chart(data):
     # Реализация функции для создания графика на основе данных
-    pass
+    #pass

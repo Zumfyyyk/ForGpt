@@ -27,46 +27,10 @@ body {
     padding: 40px;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-}
-.login-container {
-    background-color: #1e1e1e;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     text-align: center;
     animation: slideIn 1s ease-in-out;
     width: 100%;
     max-width: 400px;
-}
-/* Полноэкранная анимация */
-.welcome-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    font-size: 3em;
-    text-align: center;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 1000;
-    animation: fadeIn 3s forwards;
-}
-@keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-.fade-out {
-    animation: fadeOut 2s forwards;
-}
-@keyframes fadeOut {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
 }
 @keyframes slideIn {
     from { transform: translateY(-20px); opacity: 0; }
@@ -99,14 +63,12 @@ button:hover {
     transform: scale(1.1);
     background-color: #45a049;
 }
-/* Логотип с закругленными углами */
 .logo {
-    width: 100px; /* Размер логотипа */
+    width: 100px;
     height: auto;
-    border-radius: 50%; /* Закругление углов (круглый логотип) */
-    margin-bottom: 20px; /* Отступ снизу */
+    border-radius: 50%;
+    margin-bottom: 20px;
 }
-/* Сообщение об ошибке */
 .error-message {
     color: red;
     margin-top: 10px;
@@ -114,20 +76,39 @@ button:hover {
     font-size: 14px;
     font-weight: bold;
 }
+/* Анимация для fade-out */
+.fade-out {
+    animation: fadeOut 2s forwards;
+}
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
 </style>
 </head>
 <body>
 <div class="login-container">
-<img src="/static/logo.png" alt="Логотип" class="logo"> <!-- Логотип с закругленными углами -->
+<img src="/static/logo.png" alt="Логотип" class="logo">
 <h2>Вход в норку</h2>
 {% if error %}
-<div class="error-message">{{ error }}</div> <!-- Отображение ошибки -->
+<div class="error-message">{{ error }}</div>
 {% endif %}
-<form method="POST" action="{{ url_for('login') }}">
+<form method="POST" action="{{ url_for('login') }}" onsubmit="fadeOutLoginPage()">
 <input type="text" name="username" placeholder="Логин" required>
 <input type="password" name="password" placeholder="Пароль" required>
 <button type="submit">Войти</button>
 </form>
 </div>
+
+<script>
+function fadeOutLoginPage() {
+    // Применяем эффект fadeOut к странице логина
+    document.body.classList.add('fade-out');
+    setTimeout(function() {
+        // Перенаправляем на главную страницу (index.html) через 2 секунды
+        window.location.href = '/index.html';
+    }, 2000);
+}
+</script>
 </body>
 </html>

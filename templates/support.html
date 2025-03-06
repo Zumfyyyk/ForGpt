@@ -6,219 +6,195 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Поддержка</title>
     <style>
-        /* Общие стили */
+        :root {
+            --bg-dark: #2b2f3a;
+            --bg-chat: #353b48;
+            --bg-header: #1f232b;
+            --text-color: #fff;
+            --accent-color: #0077ff;
+            --button-hover: #005fa3;
+            --message-bg-user: #66ccff;
+            --message-bg-support: #333;
+            --border-color: #444;
+            --input-bg: #2f353f;
+            --input-border: #555;
+            --scrollbar-color: #888;
+            --input-height: 45px;
+            --chat-item-radius: 10px;
+            --message-radius: 18px;
+            --chat-list-width: 300px;
+            --button-radius: 20px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #fff;
+            background: linear-gradient(45deg, #3a3f58, #2b2f3a);
             margin: 0;
             padding: 0;
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         header {
-            background-color: #1e1e1e;
-            padding: 15px 30px;
+            background-color: var(--bg-header);
+            padding: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
         header .logo {
-            max-width: 100px;
+            max-width: 40px;
             height: auto;
+            border-radius: 50%;
         }
 
         header nav a {
-            color: #fff;
+            color: var(--text-color);
             text-decoration: none;
+            font-size: 16px;
             margin-left: 15px;
-            font-weight: bold;
-            font-size: 18px;
             transition: color 0.3s ease;
         }
 
         header nav a:hover {
-            color: #4CAF50;
+            color: var(--accent-color);
         }
 
         main {
             display: flex;
             flex: 1;
             overflow: hidden;
+            padding: 20px;
+            flex-direction: row;
+            gap: 20px;
         }
 
-        /* Левый блок: Список чатов */
         #chat-list {
-            width: 300px;
-            background-color: #1e1e1e;
+            width: var(--chat-list-width);
+            background-color: var(--bg-chat);
             padding: 20px;
             overflow-y: auto;
-            border-right: 1px solid #444;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
-            transition: width 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #chat-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
         .chat-item {
             padding: 12px;
-            margin: 5px 0;
-            background-color: #333;
-            border-radius: 5px;
+            margin: 10px 0;
+            background-color: var(--bg-chat);
+            border-radius: var(--chat-item-radius);
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s ease;
+            transition: background-color 0.3s, transform 0.3s ease;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            position: relative;
         }
 
         .chat-item:hover {
-            background-color: #444;
+            background-color: var(--accent-color);
             transform: translateX(5px);
         }
 
         .chat-item .user-name {
-            margin-left: 10px;
             font-size: 16px;
+            font-weight: bold;
         }
 
         .chat-item .status {
-            margin-left: auto;
             font-size: 14px;
             color: #888;
         }
 
-        .chat-item .close-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #ff3b30;
-            color: #fff;
-            border: none;
-            padding: 5px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-
-        .chat-item .close-btn:hover {
-            background: #ff1e1e;
-        }
-
-        /* Чат с сообщениями */
         #chat-window {
             flex: 1;
-            background-color: #121212;
+            background-color: var(--bg-chat);
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-            padding: 20px;
             overflow-y: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
         .message {
             margin: 10px 0;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: var(--message-radius);
             max-width: 70%;
             word-wrap: break-word;
         }
 
         .message.user {
-            background-color: #444;
+            background-color: var(--message-bg-user);
             align-self: flex-end;
         }
 
         .message.support {
-            background-color: #2c3e50;
+            background-color: var(--message-bg-support);
             align-self: flex-start;
         }
 
-        /* Ввод сообщений */
         #message-input {
             display: flex;
-            margin-top: 15px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            padding: 0 20px;
+            background-color: var(--bg-header);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 100;
         }
 
         #message-input input {
             flex: 1;
+            height: var(--input-height);
             padding: 10px;
-            border-radius: 20px;
-            border: 1px solid #444;
-            background-color: #222;
-            color: white;
+            border-radius: var(--button-radius);
+            border: 1px solid var(--input-border);
+            background-color: var(--input-bg);
+            color: var(--text-color);
             font-size: 16px;
+            cursor: not-allowed; /* Disable input initially */
         }
 
         #message-input button {
             margin-left: 10px;
             padding: 10px 15px;
-            border-radius: 20px;
-            background-color: #4CAF50;
-            color: white;
+            border-radius: var(--button-radius);
+            background-color: var(--accent-color);
+            color: var(--text-color);
             border: none;
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
+            pointer-events: none; /* Disable button initially */
         }
 
         #message-input button:hover {
-            background-color: #45a049;
+            background-color: var(--button-hover);
         }
 
-        /* Скрипты сообщений */
-        #message-scripts {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
+        footer {
+            background-color: var(--bg-header);
+            padding: 10px;
+            text-align: center;
+            color: var(--text-color);
+            font-size: 14px;
+            border-top: 1px solid var(--border-color);
         }
 
-        .script-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 12px 20px;
-            margin-right: 15px;
-            margin-bottom: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s, transform 0.2s ease;
-        }
-
-        .script-btn:hover {
-            background-color: #45a049;
-            transform: scale(1.05);
-        }
-
-        /* Панель управления */
-        #control-panel {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        #control-panel button {
-            background-color: #ff5722;
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        }
-
-        #control-panel button:hover {
-            background-color: #e64a19;
-        }
-
-        /* Адаптивность */
         @media (max-width: 768px) {
             main {
                 flex-direction: column;
@@ -234,115 +210,75 @@
                 margin-top: 20px;
             }
         }
-
-        footer {
-            background-color: #333;
-            padding: 10px;
-            text-align: center;
-            color: #fff;
-            font-size: 14px;
-            border-top: 1px solid #444;
-        }
     </style>
 </head>
 <body>
     <header>
-        <img src="logo.png" alt="Логотип" class="logo">
+        <img src="/static/logo.png" alt="Logo" class="logo">
         <nav>
-            <a href="/logout">Выйти</a>
-            <a href="/main">Вернуться в главное меню</a>
+            <a href="/login">Выйти</a>
         </nav>
     </header>
 
     <main>
-        <!-- Левый блок: Список чатов -->
         <section id="chat-list">
             <h2>Чаты</h2>
-            <div class="chat-item" onclick="openChat('chat1')">
-                <div class="user-name">Пользователь 1</div>
-                <div class="status">Онлайн</div>
-                <button class="close-btn" onclick="closeChat('chat1')">X</button>
-            </div>
-            <div class="chat-item" onclick="openChat('chat2')">
-                <div class="user-name">Пользователь 2</div>
-                <div class="status">Ожидает ответа</div>
-                <button class="close-btn" onclick="closeChat('chat2')">X</button>
-            </div>
-            <div class="chat-item" onclick="openChat('chat3')">
-                <div class="user-name">Пользователь 3</div>
-                <div class="status">Не в сети</div>
-                <button class="close-btn" onclick="closeChat('chat3')">X</button>
-            </div>
+            <ul id="chat-list-ul">
+                <li class="chat-item" id="chat1" onclick="selectChat('chat1')">
+                    <span class="user-name">Пользователь 1</span>
+                    <span class="status">Ожидает ответа</span>
+                </li>
+                <li class="chat-item" id="chat2" onclick="selectChat('chat2')">
+                    <span class="user-name">Пользователь 2</span>
+                    <span class="status">Ожидает ответа</span>
+                </li>
+            </ul>
         </section>
 
-        <!-- Правый блок: Окно чата -->
         <section id="chat-window">
-            <h2>Чат с пользователем 1</h2>
-            <div class="message support">Здравствуйте, чем могу помочь?</div>
-            <div class="message user">Привет! У меня есть вопрос.</div>
-            <div class="message support">Конечно, спрашивайте!</div>
-
-            <!-- Скрипты сообщений -->
-            <div id="message-scripts">
-                <button class="script-btn" onclick="sendScript('Проверяю')">Проверяю</button>
-                <button class="script-btn" onclick="sendScript('Скоро вернусь')">Скоро вернусь</button>
-                <button class="script-btn" onclick="sendScript('Я вернулся')">Я вернулся</button>
-            </div>
-
-            <!-- Ввод сообщения -->
-            <div id="message-input">
-                <input type="text" id="message-text" placeholder="Введите сообщение..." />
-                <button onclick="sendMessage()">Отправить</button>
-            </div>
-
-            <!-- Панель управления -->
-            <div id="control-panel">
-                <button onclick="closeChatWindow()">Закрыть чат</button>
-                <button onclick="goBack()">Главное меню</button>
-            </div>
+            <h2>Выберите чат для общения</h2>
+            <div id="messages"></div>
         </section>
     </main>
+
+    <section id="message-input">
+        <input type="text" id="message-text" placeholder="Введите сообщение..." disabled />
+        <button id="send-btn" disabled>Отправить</button>
+    </section>
 
     <footer>
         &copy; 2025 Crypto Bot. Все права защищены.
     </footer>
 
     <script>
-        function openChat(chatId) {
-            alert('Открыт чат с ' + chatId);
+        let selectedChat = null;
+
+        function selectChat(chatId) {
+            selectedChat = chatId;
+            document.getElementById('message-text').disabled = false;
+            document.getElementById('send-btn').disabled = false;
+            document.getElementById('message-text').focus();
+            document.getElementById('messages').innerHTML = ''; // Очистить сообщения
+            document.getElementById('messages').innerHTML = '<div class="message support">Здравствуйте! Чем я могу вам помочь?</div>';
         }
 
-        function closeChat(chatId) {
-            alert('Закрыт чат с ' + chatId);
-        }
+        document.getElementById('send-btn').addEventListener('click', function () {
+            if (selectedChat && document.getElementById('message-text').value.trim() !== '') {
+                const messageText = document.getElementById('message-text').value;
 
-        function sendMessage() {
-            const messageText = document.getElementById('message-text').value;
-            if (messageText.trim() === '') return;
+                // Добавить сообщение пользователя
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message', 'user');
+                newMessage.textContent = messageText;
+                document.getElementById('messages').appendChild(newMessage);
 
-            const chatWindow = document.getElementById('chat-window');
-            const messageElem = document.createElement('div');
-            messageElem.classList.add('message', 'user');
-            messageElem.textContent = messageText;
-            chatWindow.appendChild(messageElem);
-            document.getElementById('message-text').value = '';
-        }
+                // Прокрутка к последнему сообщению
+                document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight;
 
-        function sendScript(scriptText) {
-            const chatWindow = document.getElementById('chat-window');
-            const messageElem = document.createElement('div');
-            messageElem.classList.add('message', 'support');
-            messageElem.textContent = scriptText;
-            chatWindow.appendChild(messageElem);
-        }
-
-        function closeChatWindow() {
-            alert('Чат закрыт');
-        }
-
-        function goBack() {
-            window.location.href = '/main';
-        }
+                // Очистить поле ввода
+                document.getElementById('message-text').value = '';
+            }
+        });
     </script>
 </body>
 </html>

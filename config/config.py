@@ -8,8 +8,8 @@ BYBIT_SECRET='ZxYWhdskWXCZWVRSUnXHAg7CiBh87I0VqGSQ'  # Секретный клю
 # Для базы данных и сайта
 SECRET_KEY='11011011011011011011011011011database2025btc'  # Секретный ключ для шифрования данных(база данных)
 
-USERNAME = 'Admin'  # Имя пользователя для логина
-PASSWORD = 'Pass123'  # Пароль для логина
+USERNAME = '1'  # Имя пользователя для логина
+PASSWORD = '1'  # Пароль для логина
 
 # Другие конфигурации
 DATABASE_URI = 'sqlite:///crypto_bot.db'  # Путь к базе данных, если используешь SQLite
