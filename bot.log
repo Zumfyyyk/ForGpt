@@ -1,1 +1,26 @@
-2025-03-06 03:49:39,933 - bot_logger - ERROR - Ошибка работы с циклом событий: no running event loop
+2025-03-06 11:45:04,307 - bot_logger - INFO - Telegram-бот успешно создан.
+2025-03-06 11:45:04,350 - bot_logger - INFO - Бот запущен. Нажми CTRL+C для остановки.
+2025-03-06 11:45:56,759 - bot_logger - INFO - Логи успешно очищены.
+2025-03-06 11:48:46,057 - bot_logger - ERROR - Ошибка работы бота: Cannot close a running event loop
+Traceback (most recent call last):
+  File "C:\Users\nikit\Desktop\crypto-bot-assistant\bot.py", line 175, in run_bot
+    await application.run_polling()
+          ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\nikit\AppData\Local\Programs\Python\Python313\Lib\site-packages\telegram\ext\_application.py", line 873, in run_polling
+    return self.__run(
+           ~~~~~~~~~~^
+        updater_coroutine=self.updater.start_polling(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+        close_loop=close_loop,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\nikit\AppData\Local\Programs\Python\Python313\Lib\site-packages\telegram\ext\_application.py", line 1117, in __run
+    loop.close()
+    ~~~~~~~~~~^^
+  File "C:\Users\nikit\AppData\Local\Programs\Python\Python313\Lib\asyncio\selector_events.py", line 101, in close
+    raise RuntimeError("Cannot close a running event loop")
+RuntimeError: Cannot close a running event loop
+2025-03-06 11:48:46,079 - bot_logger - INFO - Остановка бота...
+2025-03-06 11:48:46,095 - bot_logger - INFO - Бот успешно остановлен.
